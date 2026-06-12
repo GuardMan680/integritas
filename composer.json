@@ -1,0 +1,5 @@
+{
+    "require-dev": {
+        "laravel/pail": "^1.2"
+    }
+}

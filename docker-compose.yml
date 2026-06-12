@@ -1,0 +1,150 @@
+services:
+
+  field-db:
+    image: mysql:8.4
+    container_name: field-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: field_db
+      MYSQL_USER: field_user
+      MYSQL_PASSWORD: field_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - field_mysql_data:/var/lib/mysql
+    networks:
+      - lapangan-network
+
+  booking-db:
+    image: mongo:8
+    container_name: booking-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: booking_user
+      MONGO_INITDB_ROOT_PASSWORD: booking_password
+      MONGO_INITDB_DATABASE: booking_db
+    ports:
+      - "27018:27017"
+    volumes:
+      - booking_mongo_data:/data/db
+    networks:
+      - lapangan-network
+
+  payment-db:
+    image: postgres:17
+    container_name: payment-db
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: payment_user
+      POSTGRES_PASSWORD: payment_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - payment_postgres_data:/var/lib/postgresql/data
+    networks:
+      - lapangan-network
+
+  # ============ APPLICATION SERVICES ============
+  field-service:
+    build: ./field-service
+    container_name: field-service
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: field-db
+      DB_NAME: field_db
+      DB_USER: field_user
+      DB_PASSWORD: field_password
+    depends_on:
+      - field-db
+    networks:
+      - lapangan-network
+
+  booking-service:
+    build: ./booking-service
+    container_name: booking-service
+    ports:
+      - "3002:3002"
+    environment:
+      FIELD_SERVICE_URL: http://field-service:3001
+      MONGO_URI: mongodb://booking_user:booking_password@booking-db:27017/booking_db?authSource=admin
+    depends_on:
+      - booking-db
+      - field-service
+    networks:
+      - lapangan-network
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    ports:
+      - "3003:3003"
+    environment:
+      DB_HOST: payment-db
+      DB_NAME: payment_db
+      DB_USER: payment_user
+      DB_PASSWORD: payment_password
+      BOOKING_SERVICE_URL: http://booking-service:3002
+    depends_on:
+      - payment-db
+    networks:
+      - lapangan-network
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "3004:3004"
+    environment:
+      DB_HOST: payment-db
+      DB_NAME: payment_db
+      DB_USER: payment_user
+      DB_PASSWORD: payment_password
+    depends_on:
+      - payment-db
+    networks:
+      - lapangan-network
+
+  report-service:
+    build: ./report-service
+    container_name: report-service
+    ports:
+      - "8000:8000"
+    environment:
+      FIELD_SERVICE_URL: http://field-service:3001
+      BOOKING_SERVICE_URL: http://booking-service:3002
+      PAYMENT_SERVICE_URL: http://payment-service:3003
+    depends_on:
+      - field-service
+      - booking-service
+      - payment-service
+    networks:
+      - lapangan-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      FIELD_SERVICE_URL: http://field-service:3001
+      BOOKING_SERVICE_URL: http://booking-service:3002
+      PAYMENT_SERVICE_URL: http://payment-service:3003
+      NOTIFICATION_SERVICE_URL: http://notification-service:3004
+      REPORT_SERVICE_URL: http://report-service:8000
+    depends_on:
+      - field-service
+      - booking-service
+      - payment-service
+      - notification-service
+      - report-service
+    networks:
+      - lapangan-network
+
+networks:
+  lapangan-network:
+    driver: bridge
+
+volumes:
+  field_mysql_data:
+  booking_mongo_data:
+  payment_postgres_data:

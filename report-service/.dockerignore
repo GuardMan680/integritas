@@ -1,0 +1,11 @@
+vendor/
+node_modules/
+storage/logs/
+.env.local
+.env.testing
+.git/
+.gitignore
+.gitattributes
+.editorconfig
+README.md
+phpunit.xml
