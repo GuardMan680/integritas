@@ -156,4 +156,9 @@ app.get("/report", async (req, res) => {
   res.status(status).json(data);
 });
 
+app.get("/report/fields", async (req, res) => {
+  const { status, data } = await proxyRequest("GET",`${REPORT_URL}/report/fields`);
+  res.status(status).json(data);
+});
+
 app.listen(PORT, "0.0.0.0", () => console.log(`API Gateway running on port ${PORT}`));
