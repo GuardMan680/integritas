@@ -140,6 +140,27 @@ services:
     networks:
       - lapangan-network
 
+  graphql-gateway:
+    build: ./graphql-gateway
+    container_name: graphql-gateway
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      FIELD_SERVICE_URL: http://field-service:3001
+      BOOKING_SERVICE_URL: http://booking-service:3002
+      PAYMENT_SERVICE_URL: http://payment-service:3003
+      NOTIFICATION_SERVICE_URL: http://notification-service:3004
+      REPORT_SERVICE_URL: http://report-service:8000
+    depends_on:
+      - field-service
+      - booking-service
+      - payment-service
+      - notification-service
+      - report-service
+    networks:
+      - lapangan-network
+
 networks:
   lapangan-network:
     driver: bridge

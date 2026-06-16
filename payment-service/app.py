@@ -91,6 +91,19 @@ def update_payment_status(id):
     cur.close()
     return jsonify({ 'service': 'payment-service', 'message': 'Status pembayaran diperbarui' })
 
+@app.route('/payments/<int:id>', methods=['DELETE'])
+def delete_payment(id):
+    cur = conn.cursor()
+    cur.execute('SELECT id FROM payments WHERE id = %s', (id,))
+    if not cur.fetchone():
+        cur.close()
+        return jsonify({'message': 'Payment tidak ditemukan'}), 404
+    cur.execute('DELETE FROM payments WHERE id = %s', (id,))
+    conn.commit()
+    cur.close()
+    return jsonify({'service': 'payment-service', 'message': 'Pembayaran berhasil dihapus'})
+
+
 @app.route('/payments/booking/<booking_id>', methods=['GET'])
 def get_payment_by_booking(booking_id):
     cur = conn.cursor()

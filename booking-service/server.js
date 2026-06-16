@@ -100,7 +100,10 @@ app.put("/bookings/:id/status", async (req, res) => {
       { $set: { status, updatedAt: new Date() } },
       { returnDocument: "after" }
     );
-    res.json(result.value);
+
+    if (!result) return res.status(404).json({ error: "Booking not found" });
+
+    res.json({ success: true, data: result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
