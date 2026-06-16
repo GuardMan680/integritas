@@ -113,6 +113,9 @@ services:
       FIELD_SERVICE_URL: http://field-service:3001
       BOOKING_SERVICE_URL: http://booking-service:3002
       PAYMENT_SERVICE_URL: http://payment-service:3003
+      DB_CONNECTION: sqlite
+    volumes:
+      - report_sqlite_data:/var/www/html/database
     depends_on:
       - field-service
       - booking-service
@@ -169,3 +172,4 @@ volumes:
   field_mysql_data:
   booking_mongo_data:
   payment_postgres_data:
+  report_sqlite_data:
